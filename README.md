@@ -7,6 +7,24 @@ Lean formalization of geometric group theory concepts (Cayley graphs, word metri
 - The project now includes scaffolding for automorphisms, quasi-isometry equivalence, and the Milnor-Schwarz direction.
 - Several files still contain `sorry` placeholders and lightweight placeholder definitions; these are the main items still to be completed.
 
+## Installation
+1. Install Lean + Lake (if not installed yet)
+   - See https://leanprover.github.io/lean4/doc/quickstart.html
+   - Common commands: `elan default`, `lake --version`
+2. Clone the repository and enter the project folder
+   - `git clone https://github.com/AndrewShen871/GGT-in-Lean.git`
+   - `cd GGT-in-Lean/cay`
+3. Initialize dependencies and build
+   - `lake env` → if mathlib is absent, this step automatically fetches mathlib
+   - `lake build`
+4. Run tests
+   - `lake test` (if tests are provided; the project currently may not include a dedicated test suite)
+   - To add a basic test, create a file under `Cay/` with a small asserted lemma and run `lake test`.
+
+Notes:
+- `lakefile.toml` already declares `mathlib` as a dependency at `v4.28.0-rc1`.
+- After cloning, running the commands above works for all students and ensures consistent dependency versions.
+
 ## Module Structure
 
 The codebase is organized by topic. In each topic, there is usually:
