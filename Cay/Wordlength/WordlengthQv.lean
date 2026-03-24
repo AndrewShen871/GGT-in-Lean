@@ -1,16 +1,17 @@
 import Mathlib
-import Cay
+import Cay.Wordlength.Wordlength
 set_option linter.style.longLine false
 
+/-- Alternative word length definition in terms of Cayley-graph path length functions. -/
+noncomputable def wordLengthQv {G : Type*} [Group G] (S : Set G) (g : G) : ℕ :=
+  Cay.Wordlength.wordLength S g
 
-/-- Define word length: the shortest path length from the identity element to g. -/
-noncomputable def wordLength {G : Type*} [Group G] (S : Set G) (g : G) : ℕ :=
-  let lengths := {n : ℕ | ∃ p : Quiver.Path (V := CayleyGraph G S) ⟨1⟩ ⟨g⟩, p.length = n}
-  sInf lengths
+/-- Alternative word distance def in terms of the path-based word metric. -/
+noncomputable def wordDistQv {G : Type*} [Group G] (S : Set G) (g h : G) : ℕ :=
+  Cay.Wordlength.wordDist S g h
 
-/-- Define word distance via left-translation invariance. -/
-noncomputable def wordDist {G : Type*} [Group G] (S : Set G) (g h : G) : ℕ :=
-  wordLength S (g⁻¹ * h)
+
+-- TODO: add properties that connect these with CayleyGraph path lengths.
 
 
 variable {G : Type*} [Group G] {S : Set G}
@@ -35,7 +36,7 @@ lemma shiftPath_length (g : G) {u v : G}
 
 
 
-lemma wordLength_mul_le (hSymm : IsSymmetric S) (hGen : IsGenerating S) (g h : G) :
+lemma wordLength_mul_le_qv (hSymm : IsSymmetric S) (hGen : IsGenerating S) (g h : G) :
   wordLength S (g * h) ≤ wordLength S g + wordLength S h := by
   let L : G → Set ℕ := fun x =>
     {n : ℕ | ∃ p : Quiver.Path (V := CayleyGraph G S) ⟨1⟩ ⟨x⟩, p.length = n}
@@ -132,10 +133,8 @@ lemma wordLength_inv_eq (hSymm : IsSymmetric S) (hGen : IsGenerating S) (g : G) 
         _ = p.length := reverse_length p
         _ = sInf (L x) := hp
     have hmem : q0.length ∈ L x⁻¹ := by
-      simpa [L, mul_assoc] using
-        (show q0.length ∈ {n : ℕ |
-          ∃ p : Quiver.Path (V := CayleyGraph G S) ⟨x⁻¹ * x⟩ ⟨x⁻¹ * 1⟩, p.length = n} from
-          ⟨q0, rfl⟩)
+      dsimp [L]
+      exact ⟨q0, rfl⟩
     exact le_trans (Nat.sInf_le hmem) (le_of_eq hq0_len)
   have hle : sInf (L g⁻¹) ≤ sInf (L g) := hle' g
   have hge : sInf (L g) ≤ sInf (L g⁻¹) := by

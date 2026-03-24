@@ -1,5 +1,5 @@
 import Mathlib
-import Cay
+import Cay.CayleyGraph
 set_option linter.style.longLine false
 
 
