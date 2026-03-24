@@ -1,5 +1,5 @@
 import Mathlib
-import Cay
+import Cay.CayleyGraph
 import Cay.Wordlength
 set_option linter.style.longLine false
 variable {G : Type*} [Group G] {S : Set G}
