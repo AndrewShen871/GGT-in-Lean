@@ -2,7 +2,29 @@ import Mathlib
 set_option linter.style.longLine false
 variable {G : Type*} [Group G] (S : Set G)
 
+------
 
+/- Add explanation of file here. -George -/
+
+------
+
+-- Below are some to dos. Some of these may already be down below. Also some may belong in the respective subfiles.
+
+-- Two (or three?) Definitions of Cayley Graph. Quiver + Simplegraph (maybe digraph?) Can define given just a subset of G, not necessarily a generating set. Denote by QCay(G,S) the quiver stucture, and SCay(G,S) the simple graph structure.
+
+-- ``Forgetful'' map that goes from QCay(G,S) -> SCay(G,S).
+
+-- Theorem: QCay(G,S) and/or SCay(G,S) is connected iff S is a generating set. May also want a statement like: QCay(G,S) connected iff SCay(G,S) is connected.
+
+-- Theorems: G acts on both QCay(G,S) and SCay(G,S). Two viewpoints: As a group action and as a homomorphism G -> Aut(Q/SCay(G,S))
+
+-- Theorems: The action is faithful, aka the map G -> Aut(Q/SCay(G,S)) is injective.
+
+-- Theorem: The map G -> Aut(QCay(G,S)) is surjective.
+
+-- Define the geometric realization of a Cayley graph.
+
+-------
 
 
 def IsSymmetric (S : Set G) : Prop := ∀ s ∈ S, s⁻¹ ∈ S
