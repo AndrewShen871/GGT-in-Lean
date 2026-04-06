@@ -10,14 +10,19 @@ noncomputable def wordLength {G : Type*} [Group G] (S : Set G) (g : G) : ℕ :=
       (∀ x ∈ w, x ∈ S ∨ x⁻¹ ∈ S) ∧
       w.prod = g ∧
       w.length = n}
+      --I think we need to actually define that the length of 1 = 0. - George
 
-/-- Define word distance via left-translation invariance. -/
-noncomputable def wordDist {G : Type*} [Group G] (S : Set G) (g h : G) : ℕ :=
-  wordLength S (g⁻¹ * h)
-
+/- Next we verify that this wordLength is a group norm. We need to verify:
+  · Sends identity to 0: wordLength 1 = 0
+  · Triangle Inequality: wordLength (g * h) ≤ wordLength g + wordLength h
+  · Invariant under inverses: wordLength (g⁻¹) = wordLength g
+  · Identity element is the only one sent to 0: wordLength g = 0 → g = 1
+-/
 
 variable {G : Type*} [Group G] {S : Set G}
 
+/-- The following lemma states that if w is a word in the set S that represents g,
+then the wordLength of g is less than the lenth of w. -/
 lemma wordLength_le_of_word {g : G} {w : List G}
     (hwS : ∀ x ∈ w, x ∈ S ∨ x⁻¹ ∈ S) (hwprod : w.prod = g) :
     wordLength S g ≤ w.length := by
@@ -25,6 +30,7 @@ lemma wordLength_le_of_word {g : G} {w : List G}
   refine Nat.sInf_le ?_
   exact ⟨w, hwS, hwprod, rfl⟩
 
+/-- Verifying that the identity is mapped to 0. -/
 lemma wordLength_one : wordLength S (1 : G) = 0 := by
   apply le_antisymm
   · exact wordLength_le_of_word (S := S) (g := (1 : G)) (w := [])
@@ -32,10 +38,7 @@ lemma wordLength_one : wordLength S (1 : G) = 0 := by
       (by simp)
   · exact Nat.zero_le _
 
-lemma wordDist_self (g : G) : wordDist S g g = 0 := by
-  unfold wordDist
-  simpa using (wordLength_one (G := G) (S := S))
-
+/-- If S is a generating set for G, then one can write any g ∈ G as a word in elements of S. -/
 lemma exists_word_of_generating (hGen : IsGenerating S) (g : G) :
     ∃ w : List G, (∀ x ∈ w, x ∈ S ∨ x⁻¹ ∈ S) ∧ w.prod = g := by
   have hg : g ∈ Subgroup.closure S := by
@@ -76,6 +79,8 @@ lemma exists_word_of_generating (hGen : IsGenerating S) (g : G) :
         simpa using (List.prod_inv_reverse w).symm
       simpa [hwprod] using hprodInv
 
+/-- If S is a generating set for G, then for any g ∈ G, there exists a word in elements of S
+that realizes its word length. I.e. the infimum in the definition of wordLength is actually a min. -/
 lemma exists_min_word (hGen : IsGenerating S) (g : G) :
     ∃ w : List G,
       (∀ x ∈ w, x ∈ S ∨ x⁻¹ ∈ S) ∧ w.prod = g ∧ w.length = wordLength S g := by
@@ -92,6 +97,8 @@ lemma exists_min_word (hGen : IsGenerating S) (g : G) :
   refine ⟨w, hwS, hwprod, ?_⟩
   simpa [wordLength, W] using hwlen
 
+/-- Word length is subadditive.
+That is, ∀ g, h ∈ G, wordLength (g * h) ≤ wordLength g + wordLength h. -/
 lemma wordLength_mul_le (hGen : IsGenerating S) (g h : G) :
   wordLength S (g * h) ≤ wordLength S g + wordLength S h := by
   obtain ⟨wg, hwgS, hwgprod, hwglen⟩ := exists_min_word (S := S) hGen g
@@ -108,14 +115,8 @@ lemma wordLength_mul_le (hGen : IsGenerating S) (g h : G) :
     _ = wg.length + wh.length := by simp
     _ = wordLength S g + wordLength S h := by rw [hwglen, hwhlen]
 
-lemma wordDist_triangle (hGen : IsGenerating S) (g h k : G) :
-  wordDist S g k ≤ wordDist S g h + wordDist S h k := by
-  unfold wordDist
-  have h_mul : g⁻¹ * k = (g⁻¹ * h) * (h⁻¹ * k) := by
-    group
-  simpa [h_mul] using
-    wordLength_mul_le (S := S) hGen (g := g⁻¹ * h) (h := h⁻¹ * k)
-
+/-- Word length is invariant under taking inverses.
+∀ g ∈ G, wordLength g⁻¹ = wordLength g. -/
 lemma wordLength_inv_eq (hGen : IsGenerating S) (g : G) :
   wordLength S g⁻¹ = wordLength S g := by
   have hle' : ∀ x : G, wordLength S x⁻¹ ≤ wordLength S x := by
@@ -143,6 +144,60 @@ lemma wordLength_inv_eq (hGen : IsGenerating S) (g : G) :
   have hge : wordLength S g ≤ wordLength S g⁻¹ := by
     simpa [inv_inv] using (hle' g⁻¹)
   exact le_antisymm hle hge
+
+/-- Word length is only 0 for the identity element.
+If wordLength g = 0, then g = 1. -/
+lemma wordLength_eq_zero_eq_one (hGen : IsGenerating S) (g : G) : wordLength S g = 0 ↔ g = 1
+  := by
+  constructor
+  · intro h0
+    obtain ⟨w, hwS, hwprod, hwlen⟩ := exists_min_word (S := S) hGen g
+    rw [h0] at hwlen
+    sorry
+  · intro h1
+    subst h1
+    exact wordLength_one
+
+/-- Realizing that the word length defined using a generating set S gives a GroupNorm on G. -/
+noncomputable def wordLength_norm (hGen : IsGenerating S) : GroupNorm G where
+ toFun := fun x => wordLength S x
+ map_one' := by
+  rw [wordLength_one]
+  simp
+ mul_le' := by
+  intro x y
+  have hNmul := wordLength_mul_le hGen x y
+  rw [<- Nat.cast_add]
+  rw [Nat.cast_le]
+  exact hNmul
+ inv' := by
+  intro x
+  have hNinv := wordLength_inv_eq hGen x
+  simp only [Nat.cast_inj]
+  exact hNinv
+ eq_one_of_map_eq_zero' := by
+  intro x
+  have hNeqzero := wordLength_eq_zero_eq_one hGen x
+  simp only [Nat.cast_eq_zero]
+  rw [hNeqzero]
+  simp
+
+/-- Define word distance via left-translation invariance. -/
+noncomputable def wordDist {G : Type*} [Group G] (S : Set G) (g h : G) : ℕ :=
+  wordLength S (g⁻¹ * h)
+
+lemma wordDist_self (g : G) : wordDist S g g = 0 := by
+  unfold wordDist
+  simpa using (wordLength_one (G := G) (S := S))
+
+
+lemma wordDist_triangle (hGen : IsGenerating S) (g h k : G) :
+  wordDist S g k ≤ wordDist S g h + wordDist S h k := by
+  unfold wordDist
+  have h_mul : g⁻¹ * k = (g⁻¹ * h) * (h⁻¹ * k) := by
+    group
+  simpa [h_mul] using
+    wordLength_mul_le (S := S) hGen (g := g⁻¹ * h) (h := h⁻¹ * k)
 
 lemma wordDist_symm (hGen : IsGenerating S) (g h : G) :
   wordDist S g h = wordDist S h g := by
