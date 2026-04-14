@@ -1,4 +1,4 @@
-import Mathlib
+import Cay.CayleyGraph.Quiver.CayleyGraph
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
 
@@ -10,12 +10,6 @@ Vertices are elements of G; two vertices g, h are adjacent iff g⁻¹ * h ∈ S.
 -/
 
 variable {G : Type*} [Group G] (S : Set G)
-
--- ── Property predicates ─────────────────
-
-def IsSymmetric (S : Set G) : Prop := ∀ s ∈ S, s⁻¹ ∈ S
-def IsGenerating (S : Set G) : Prop := Subgroup.closure S = ⊤
-def IsLoopless (S : Set G) : Prop := (1 : G) ∉ S
 
 -- ── Core definition ────────────────────────────────────────────────────────
 
